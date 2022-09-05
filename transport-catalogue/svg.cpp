@@ -1,9 +1,5 @@
 #include "svg.h"
 
-/*
- * Место для вашей svg-библиотеки
- */
-
 namespace svg {
 using namespace std::literals;
 

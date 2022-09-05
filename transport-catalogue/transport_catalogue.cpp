@@ -1,9 +1,5 @@
 #include "transport_catalogue.h"
 
-/*
- * Здесь можно разместить код транспортного справочника
- */
-
 #include "geo.h"
 #include <iostream>
 #include <iomanip>

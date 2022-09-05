@@ -1,7 +1,7 @@
 #pragma once
 
 /*
- * Место для вашей svg-библиотеки
+ * Место для svg-библиотеки
  */
 
 #include <optional>

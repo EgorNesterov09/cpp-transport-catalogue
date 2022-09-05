@@ -1,6 +1,6 @@
 #pragma once
 /*
- * Место для вашей JSON-библиотеки
+ * Место для JSON-библиотеки
  */
 
 #include "transport_catalogue.h"

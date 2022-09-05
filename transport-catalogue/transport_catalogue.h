@@ -1,7 +1,7 @@
 #pragma once
 
 /*
- * Здесь можно разместить код транспортного справочника
+ * Здесь код транспортного справочника
  */
 #include "domain.h"
 #include <string>
@@ -20,7 +20,7 @@ private:
     std::hash<const void*> hasher_;
 };
 
-class Stopasher {
+class StopHasher {
 public:
     size_t operator()(Stop* stop) const;
 private:
@@ -50,6 +50,6 @@ private:
     std::unordered_map<std::string_view, Stop*> stops_hash_table_;
     std::deque<Bus> buses_;
     std::unordered_map<std::string_view, Bus*> buses_hash_table_;
-    std::unordered_map<Stop*,std::set<std::string>, Stopasher> buses_to_stop_;
+    std::unordered_map<Stop*,std::set<std::string>, StopHasher> buses_to_stop_;
     std::unordered_map<std::pair<Stop*, Stop*>, int, StopPairHasher> all_distance_;    
 };

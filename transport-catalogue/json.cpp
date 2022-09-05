@@ -1,10 +1,5 @@
 #include "json.h"
 
-/*
- * Место для вашей JSON-библиотеки
- */
-
-
 #include "json.h"
 #include "json_reader.h"
 #include <iostream>

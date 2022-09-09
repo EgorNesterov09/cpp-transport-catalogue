@@ -10,6 +10,9 @@ std::ostream& operator<<(std::ostream& out, const svg::Color color) {
     return out;
 }  
 
+map_renderer::MapRendererSettings map_renderer::MapRenderer::GetMapRendererSettings() {
+    return map_rend_;
+}
 
 void map_renderer::MapRenderer::SetMapRenderer(MapRendererSettings map_rend) {
     map_rend_ = map_rend;
@@ -96,7 +99,7 @@ void map_renderer::MapRenderer::PrintRoad ( std::vector<const Bus*> buses, ostre
     i = 0;
     for (auto busptr: buses) {
         if (!busptr->stops.empty()) {
-            for (auto& text: MakeBusName(busptr, Point(map_rend_.bus_label_offset.first, map_rend_.bus_label_offset.second), map_rend_.bus_label_font_size, map_rend_.color_palette[i], map_rend_.underlayer_width, map_rend_.underlayer_color, proj)) {
+            for (auto& text: MakeBusName(busptr, Point(map_rend_.bus_label_offset.x, map_rend_.bus_label_offset.y), map_rend_.bus_label_font_size, map_rend_.color_palette[i], map_rend_.underlayer_width, map_rend_.underlayer_color, proj)) {
                 result.Add(move(text));
             }
             i++;
@@ -113,10 +116,10 @@ void map_renderer::MapRenderer::PrintRoad ( std::vector<const Bus*> buses, ostre
     for (auto stopptr: stops) {
         Text text1;
         Point text_coord = proj(geo::Coordinates(stopptr->latitude, stopptr->longitude));
-        text1.SetPosition(text_coord).SetOffset(Point(map_rend_.stop_label_offset.first, map_rend_.stop_label_offset.second)).SetFontSize(map_rend_.stop_label_font_size).SetFontFamily("Verdana"s).SetData(stopptr->name).SetStrokeColor(map_rend_.underlayer_color).SetFillColor(map_rend_.underlayer_color).SetStrokeWidth(map_rend_.underlayer_width).SetStrokeLineCap(StrokeLineCap::ROUND).SetStrokeLineJoin(StrokeLineJoin::ROUND);
+        text1.SetPosition(text_coord).SetOffset(Point(map_rend_.stop_label_offset.x, map_rend_.stop_label_offset.y)).SetFontSize(map_rend_.stop_label_font_size).SetFontFamily("Verdana"s).SetData(stopptr->name).SetStrokeColor(map_rend_.underlayer_color).SetFillColor(map_rend_.underlayer_color).SetStrokeWidth(map_rend_.underlayer_width).SetStrokeLineCap(StrokeLineCap::ROUND).SetStrokeLineJoin(StrokeLineJoin::ROUND);
         result.Add(move(text1)); 
         Text text2;
-        text2.SetPosition(text_coord).SetOffset(Point(map_rend_.stop_label_offset.first, map_rend_.stop_label_offset.second)).SetFontSize(map_rend_.stop_label_font_size).SetFontFamily("Verdana"s).SetData(stopptr->name).SetFillColor("black"s);
+        text2.SetPosition(text_coord).SetOffset(Point(map_rend_.stop_label_offset.x, map_rend_.stop_label_offset.y)).SetFontSize(map_rend_.stop_label_font_size).SetFontFamily("Verdana"s).SetData(stopptr->name).SetFillColor("black"s);
         result.Add(move(text2)); 
     }
     result.Render(out); 

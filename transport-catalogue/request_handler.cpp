@@ -5,9 +5,11 @@
 #include <iostream>
 
 using namespace std;
+
+namespace request_handler {
     // Возвращает информацию о маршруте (запрос Bus)
 BusStat RequestHandler::GetBusStat(const string_view& bus_name) const {
-    Bus* bus = catalog_.FindBus(bus_name);
+    Bus* bus = catalog_->FindBus(bus_name);
     double curvature = (*bus).road_distance / (*bus).geo_distance;
     int all_stops = (*bus).stops.size();
     set<Stop*> bu;
@@ -30,14 +32,14 @@ void RequestHandler::LoadBaseInTransportCatalogue() {
             const string& stop = dict.AsMap().at("name"s).AsString();
             const double& latitude = dict.AsMap().at("latitude"s).AsDouble();
             const double& longitude = dict.AsMap().at("longitude"s).AsDouble();
-            catalog_.AddStop(stop, latitude, longitude);
+            catalog_->AddStop(stop, latitude, longitude);
         }
     }
     for (const auto& dict: base_requests) {
         if(dict.AsMap().at("type"s).AsString() == "Stop") {
         const string& stop = dict.AsMap().at("name"s).AsString();
             for (const auto& [next_stop, dist]: dict.AsMap().at("road_distances"s).AsMap()) {
-                catalog_.SetDistance(catalog_.FindStop(stop), catalog_.FindStop(next_stop), dist.AsDouble());
+                catalog_->SetDistance(catalog_->FindStop(stop), catalog_->FindStop(next_stop), dist.AsDouble());
             }
         }
     }
@@ -51,14 +53,14 @@ void RequestHandler::LoadBaseInTransportCatalogue() {
             int road_distance = 0;
             if (dict.AsMap().find("stops"s)!=dict.AsMap().end() && !dict.AsMap().at("stops"s).AsArray().empty()) {
             for (const auto& stop: dict.AsMap().at("stops"s).AsArray()) {
-                vec.push_back(catalog_.FindStop(stop.AsString()));
+                vec.push_back(catalog_->FindStop(stop.AsString()));
                 if (is_ring == false) {
                     vec1.push_back(string_view(stop.AsString()));
                 }
             }
             if (is_ring == false) {    
                 for (auto it = vec1.rbegin()+1; it != vec1.rend(); it++) {
-                    vec.push_back(catalog_.FindStop(*it));
+                    vec.push_back(catalog_->FindStop(*it));
                 }
             }
             for (size_t i = 0; i < vec.size()-1; i++) {
@@ -66,10 +68,10 @@ void RequestHandler::LoadBaseInTransportCatalogue() {
                 geo::Coordinates((vec[i])->latitude, (vec[i])->longitude),
                 geo::Coordinates((vec[i+1])->latitude, (vec[i+1])->longitude) 
                 );
-                road_distance += catalog_.GetDistance(vec[i], vec[i+1]);
+                road_distance += catalog_->GetDistance(vec[i], vec[i+1]);
             }
             }
-            catalog_.AddBus(name, move(vec), is_ring, geo_distance, road_distance);
+            catalog_->AddBus(name, move(vec), is_ring, geo_distance, road_distance);
         }
     }
 } 
@@ -80,10 +82,10 @@ json::Document RequestHandler::DoStatRequests() {
     for (const auto& request: stat_requests) {
         if (request.AsMap().at("type"s).AsString() == "Stop") {
             const string& stop = request.AsMap().at("name"s).AsString();
-            if (catalog_.CheckStop(stop)) {
+            if (catalog_->CheckStop(stop)) {
                 int id = request.AsMap().at("id"s).AsInt();
                 json::Array stops;
-                for (auto a: catalog_.FindBusesToStop(catalog_.FindStop(stop))){
+                for (auto a: catalog_->FindBusesToStop(catalog_->FindStop(stop))){
                     stops.push_back(json::Node(a));
                 }
                 result.push_back(json::Document{json::Builder{}
@@ -106,7 +108,7 @@ json::Document RequestHandler::DoStatRequests() {
         }
         else if (request.AsMap().at("type"s).AsString() == "Bus") {
             const string& bus = request.AsMap().at("name"s).AsString();
-            if (catalog_.CheckBus(bus)) {
+            if (catalog_->CheckBus(bus)) {
                 int id = request.AsMap().at("id"s).AsInt();
                 BusStat b_stat = GetBusStat(bus);
                 result.push_back(json::Document{json::Builder{}
@@ -136,7 +138,7 @@ json::Document RequestHandler::DoStatRequests() {
             int id = request.AsMap().at("id"s).AsInt();
             ostringstream ss;
             string s;
-            renderer_.PrintRoad(GetBuses(), ss);
+            renderer_->PrintRoad(GetBuses(), ss);
             result.push_back(json::Document{json::Builder{}
                                 .StartDict()
                                     .Key("map"s).Value(ss.str())
@@ -148,7 +150,7 @@ json::Document RequestHandler::DoStatRequests() {
             int id = request.AsMap().at("id"s).AsInt();
             const string& from = request.AsMap().at("from"s).AsString();
             const string& to = request.AsMap().at("to"s).AsString();
-            auto route_answer = router_.GetRoute(from, to);
+            auto route_answer = router_->GetRoute(from, to);
             if (!route_answer.empty()) {           
                 json::Array array;
                 double total_time = 0;
@@ -183,14 +185,26 @@ json::Document RequestHandler::DoStatRequests() {
 }
 
 void RequestHandler::LoadRenderSettings() {
-    renderer_.SetMapRenderer(LoadRender()); 
+    renderer_->SetMapRenderer(LoadRender()); 
  }
 
 std::vector<const Bus*> RequestHandler::GetBuses() const {
-    return catalog_.GetBuses();
+    return catalog_->GetBuses();
 }
                 
 void RequestHandler::LoadRoutingSettings() {
-    router_.SetTransportRouter(LoadRouter());
-    router_.BuildGraph(catalog_);
+    router_->SetTransportRouter(LoadRouter());
+    router_->BuildGraph(*catalog_);
 }
+
+std::filesystem::path RequestHandler::GetPatch() {
+    json::Dict serialization_settings = QueryBase_.GetRoot().AsMap().at("serialization_settings"s).AsMap();
+    file_patch_ = serialization_settings.at("file"s).AsString();
+    return file_patch_;
+}
+void RequestHandler::SetCatalogs(transport_catalogue::TransportCatalogue& db, map_renderer::MapRenderer& renderer, transport_router::TransportRouter& router) {
+    catalog_ = &db;
+    renderer_ = &renderer;
+    router_ = &router;
+}
+} //namespace request_handler 

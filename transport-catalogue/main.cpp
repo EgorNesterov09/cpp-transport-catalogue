@@ -1,41 +1,60 @@
 #include "json_builder.h"
-#include<iomanip>
 #include "geo.h"
 #include "json.h"
 #include "json_reader.h"
 #include "transport_catalogue.h"
 #include "request_handler.h"
 #include "transport_router.h"
+#include "serialization.h"
 #include <iostream>
-
+#include <fstream>
+#include <iomanip>
+#include <string_view>
 
 using namespace std;
 
-ostream& operator << (ostream& out, Stop stop) {
-    out << "Stop "s << stop.name << ": "s << std::fixed << std::setprecision(6) << stop.latitude << ", "s << std::fixed << std::setprecision(6) << stop.longitude;
-    return out;
+void PrintUsage(std::ostream& stream = std::cerr) {
+    stream << "Usage: transport_catalogue [make_base|process_requests]\n"sv;
 }
-ostream& operator << (ostream& out, Bus bus) {
-    out << "Bus "s << bus.name << ": "s; 
-    for (auto stop : bus.stops) {
-        out << *stop << ", ";
+
+int main(int argc, char* argv[]) {
+    if (argc != 2) {
+        PrintUsage();
+        return 1;
     }
-    return out;
-}
-using namespace svg;
 
-int main() {
-    
-    TransportCatalogue t_cat;
-    map_renderer::MapRenderer m_rend;
-    transport_router::TransportRouter t_rout;
-    RequestHandler req_han (t_cat, m_rend, t_rout);
-    req_han.LoadJSONinBase(cin);
-    req_han.LoadBaseInTransportCatalogue();
-    req_han.LoadRenderSettings();
-    req_han.LoadRoutingSettings();
-    //PrintValue(req_han.DoStatRequests(), cout); 
-    json::Print(req_han.DoStatRequests(), cout); 
+    const std::string_view mode(argv[1]);
 
-    return 0;
+    if (mode == "make_base"sv) {
+
+        // make base here
+        transport_catalogue::TransportCatalogue t_cat;
+        map_renderer::MapRenderer m_rend;
+        transport_router::TransportRouter t_rout;
+        request_handler::RequestHandler req_han;
+        req_han.SetCatalogs(t_cat, m_rend, t_rout);
+        req_han.LoadJSONinBase(cin);
+        req_han.LoadBaseInTransportCatalogue();
+        req_han.LoadRenderSettings();
+        req_han.LoadRoutingSettings();
+        Serializer::Serialize(req_han.GetPatch(), t_cat, m_rend.GetMapRendererSettings(), t_rout.GetTransportRouterSetting());
+        
+        
+    } else if (mode == "process_requests"sv) {
+         // process requests here
+        
+        request_handler::RequestHandler req_han;
+        req_han.LoadJSONinBase(cin);
+        auto deserializedDb = Serializer::Deserialize(req_han.GetPatch());
+        transport_catalogue::TransportCatalogue t_cat = get<0>(deserializedDb);
+        map_renderer::MapRenderer m_rend(get<1>(deserializedDb));
+        transport_router::TransportRouter t_rout(get<2>(deserializedDb));
+        req_han.SetCatalogs(t_cat, m_rend, t_rout);
+        t_rout.BuildGraph(t_cat);
+        json::Print(req_han.DoStatRequests(), cout);
+       
+    } else {
+        PrintUsage();
+        return 1;
+    }
 }

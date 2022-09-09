@@ -9,7 +9,7 @@ void transport_router::TransportRouter::SetTransportRouter(TransportRouterSettin
     transp_rout_ = transp_rout;
 }
 
-void TransportRouter::BuildGraph(const TransportCatalogue& db) {
+void TransportRouter::BuildGraph(const transport_catalogue::TransportCatalogue& db) {
     Clear();
 
     const auto& stops = db.GetStops();
@@ -31,7 +31,7 @@ void TransportRouter::BuildGraph(const TransportCatalogue& db) {
 }
 
 void TransportRouter::AddEdges(const Bus* bus,
-    const TransportCatalogue& db) {
+    const transport_catalogue::TransportCatalogue& db) {
 
     const auto& bus_stops = bus->stops;
     auto bus_stops_count = bus_stops.size();
@@ -142,5 +142,9 @@ void TransportRouter::Clear() {
     buses_names_.clear();
     stops_counts_.clear();
 }
+    
+TransportRouterSettings TransportRouter::GetTransportRouterSetting() {
+    return transp_rout_;
+}    
     
 } //namespace transport_router    

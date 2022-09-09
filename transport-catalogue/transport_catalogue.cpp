@@ -6,7 +6,8 @@
 #include <string_view>
 #include <set>
 using namespace std;
- 
+
+namespace transport_catalogue {
 void TransportCatalogue::AddStop(std::string stop, long double latitude,
 long double longitude) {
     Stop a (stop, latitude, longitude);
@@ -29,7 +30,7 @@ void TransportCatalogue::AddBus(string bus, vector<Stop*> stops, bool is_ring, d
     }
 }
 
-Bus* TransportCatalogue::FindBus(std::string_view bus) {
+Bus* TransportCatalogue::FindBus(std::string_view bus) const {
     return buses_hash_table_.at(bus);
 }
 
@@ -84,14 +85,24 @@ vector<const Bus*> TransportCatalogue::GetBuses() const {
     return result;
 }
 
+map<std::pair<Stop*, Stop*>, int> TransportCatalogue::GetDistances() {
+    map<std::pair<Stop*, Stop*>, int> result;
+    for (const auto& [key, value] : all_distance_) {
+        result[key] = value;
+    }
+    return result;
+}
+
 size_t StopPairHasher::operator()(std::pair<Stop*, Stop*> stop) const {
         return hasher_(stop.first)*37 + hasher_(stop.second)*(37^2);
 }
 
-size_t Stopasher::operator()(Stop* stop) const {
+size_t StopHasher::operator()(Stop* stop) const {
         return hasher_(stop)*37;
 }
 
 std::unordered_map<std::string_view, Stop*> TransportCatalogue::GetStops() const {
     return stops_hash_table_;
 }
+
+} //namespace transport_catalogue 

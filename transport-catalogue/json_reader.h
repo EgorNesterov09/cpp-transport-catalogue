@@ -20,4 +20,5 @@ public:
     transport_router::TransportRouterSettings LoadRouter();
 protected:
     json::Document QueryBase_;
+    std::string file_patch_;
 };

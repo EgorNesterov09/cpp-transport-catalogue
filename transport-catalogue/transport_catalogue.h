@@ -11,8 +11,10 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <set>
+#include <map>
 #include <functional>
 
+namespace transport_catalogue {
 class StopPairHasher {
 public:
     size_t operator()(std::pair<Stop*, Stop*> stop) const;
@@ -29,7 +31,6 @@ private:
 
 class TransportCatalogue {
 public:
-    
     void AddStop(std::string stop, long double latitude,
     long double longitude);
     bool CheckStop(std::string_view stop);
@@ -38,13 +39,14 @@ public:
     
     std::vector<const Bus*> GetBuses() const;
     void AddBus(std::string bus, std::vector<Stop*> stops, bool is_ring, double geo_distance, int road_distance);
-    Bus* FindBus(std::string_view bus);
+    Bus* FindBus(std::string_view bus) const;
     bool CheckBus(std::string_view bus);
     void GetBusInfo(Bus* bus);    
     std::set<std::string> FindBusesToStop(Stop* stop);
     
     void SetDistance(Stop* stop1, Stop* stop2, int distance);
-    int GetDistance(Stop* stop1, Stop* stop2) const;    
+    int GetDistance(Stop* stop1, Stop* stop2) const;
+    std::map<std::pair<Stop*, Stop*>, int> GetDistances();
 private:
     std::deque<Stop> stops_;
     std::unordered_map<std::string_view, Stop*> stops_hash_table_;
@@ -53,3 +55,4 @@ private:
     std::unordered_map<Stop*,std::set<std::string>, StopHasher> buses_to_stop_;
     std::unordered_map<std::pair<Stop*, Stop*>, int, StopPairHasher> all_distance_;    
 };
+} //namespace transport_catalogue 

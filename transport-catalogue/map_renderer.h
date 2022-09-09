@@ -27,10 +27,10 @@ struct MapRendererSettings {
     double stop_radius;
 
     int bus_label_font_size;
-    std::pair<double, double> bus_label_offset;
+    svg::Point bus_label_offset;
 
     int stop_label_font_size;
-    std::pair<double, double> stop_label_offset;
+    svg::Point stop_label_offset;
 
     svg::Color underlayer_color;
     double underlayer_width;
@@ -40,9 +40,11 @@ struct MapRendererSettings {
     
 class MapRenderer {
 public:
+    MapRenderer() = default;
+    MapRenderer(MapRendererSettings map_rend) : map_rend_(map_rend) {};
     void PrintRoad(std::vector<const Bus*> buses, std::ostream& out);
     void SetMapRenderer(MapRendererSettings map_rend);
-    //void Print();
+    MapRendererSettings GetMapRendererSettings();
 private:    
     MapRendererSettings map_rend_;
 }; 

@@ -19,9 +19,13 @@ struct TransportRouterSettings {
     
 class TransportRouter {
 public:
-    void SetTransportRouter(TransportRouterSettings transp_rout);
+    TransportRouter() = default;
+    TransportRouter(TransportRouterSettings transp_rout) : transp_rout_(transp_rout) {};
     
-    void BuildGraph(const TransportCatalogue& db);
+    void SetTransportRouter(TransportRouterSettings transp_rout);
+    TransportRouterSettings GetTransportRouterSetting();
+    
+    void BuildGraph(const transport_catalogue::TransportCatalogue& db);
     
     std::vector<TripAction> GetRoute(std::string_view from_stop, 
                                         std::string_view to_stop);
@@ -40,6 +44,6 @@ private:
     std::unordered_map<graph::EdgeId, std::string_view> buses_names_;
     std::unordered_map<graph::EdgeId, int> stops_counts_;
     
-    void AddEdges(const Bus* bus, const TransportCatalogue& db);
+    void AddEdges(const Bus* bus, const transport_catalogue::TransportCatalogue& db);
 }; 
 } //namespace transport_router

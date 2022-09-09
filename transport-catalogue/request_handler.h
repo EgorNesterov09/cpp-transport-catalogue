@@ -6,6 +6,9 @@
 #include "json_builder.h"
 #include <unordered_set>
 #include <string>
+#include <filesystem>
+
+
 
 /*
  * Здесь код обработчика запросов к базе, содержащего логику, которую не
@@ -14,7 +17,7 @@
  * См. паттерн проектирования Фасад: https://ru.wikipedia.org/wiki/Фасад_(шаблон_проектирования)
  */
 
-
+namespace request_handler {
 struct BusStat {
     double curvature;
     int route_length;
@@ -24,7 +27,10 @@ struct BusStat {
 
 class RequestHandler: public JSONReader {
 public:
-    RequestHandler(TransportCatalogue& db, map_renderer::MapRenderer& renderer, transport_router::TransportRouter& router) : catalog_(db),  renderer_(renderer), router_(router){};
+    RequestHandler() = default;
+    //RequestHandler(transport_catalogue::TransportCatalogue& db, map_renderer::MapRenderer& renderer, transport_router::TransportRouter& router) : catalog_(db),  renderer_(renderer), router_(router){};
+    
+    void SetCatalogs(transport_catalogue::TransportCatalogue& db, map_renderer::MapRenderer& renderer, transport_router::TransportRouter& router);
     
     void LoadBaseInTransportCatalogue() override;
     
@@ -40,9 +46,11 @@ public:
     
     std::vector<const Bus*> GetBuses() const;
 
+    std::filesystem::path GetPatch();
 private:
     // RequestHandler использует агрегацию объектов "Транспортный Справочник" и "Визуализатор Карты"
-    TransportCatalogue& catalog_;
-    map_renderer::MapRenderer& renderer_;
-    transport_router::TransportRouter& router_;
+    transport_catalogue::TransportCatalogue* catalog_;
+    map_renderer::MapRenderer* renderer_;
+    transport_router::TransportRouter* router_;
 };
+} //namespace request_handler 
